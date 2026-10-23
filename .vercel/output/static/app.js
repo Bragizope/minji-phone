@@ -321,11 +321,12 @@ VIEWS.kakao=()=>{const list=chatNames.slice().sort((a,b)=>dateKey(b)-dateKey(a))
 const AUD_DUR={'media/minji_whistle.mp3':'0:15','media/minji_across_the_universe.mp3':'0:13'};
 function fileInfo(n){return({'과제 파일':[t('f_assign'),'1.2MB'],'수정한 과제 파일':[t('f_assign2'),'1.3MB'],'실기 체크 시트 파일':[t('f_check'),'48KB']})[n]||[n+'.pdf','820KB']}
 function bubble(s){const m=mediaLabels[s];
- if(m&&m.kind==='image')return `<div class="bb img" onclick="event.stopPropagation();openViewerSrc('${m.src}',this.firstElementChild)"><img src="${m.src}" alt=""></div>`;
+ if(m&&m.kind==='image')return `<div class="bb img" onclick="event.stopPropagation();openViewerSrc('${m.src}',this.firstElementChild)"><img src="${m.src}" loading="lazy" alt=""></div>`;
  if(m&&m.kind==='audio'){let w='';for(let i=0;i<20;i++)w+=`<i style="height:${5+Math.round(Math.abs(Math.sin(i*1.7+s.length))*15)}px;animation-delay:-${(i%5)*.13}s"></i>`;return `<div class="bb aud" data-src="${m.src}" onclick="event.stopPropagation();playChatAudio(this)"><span class="pl">${G.playF}</span><span class="wv">${w}</span><span class="du">${AUD_DUR[m.src]||'0:10'}</span></div>`}
+ if(m&&m.kind==='video')return `<div class="bb vid" onclick="event.stopPropagation();playChatVideo('${m.src}',this)"><video src="${m.src}" muted playsinline preload="metadata"></video><span class="vplay">${G.playF}</span><span class="vlabel">${esc(m.label||'视频')}</span></div>`;
  const b=s.match(/^\[(.+)\]$/);if(b){const n=b[1];
   if(/기프티콘/.test(n))return `<div class="bb gift"><div class="gt">🍵</div><div class="gb"><b>${t('giftArrived')}</b>${t('giftItem')}</div><div class="gbtn">${t('giftCheck')}</div></div>`;
-  if(/파일/.test(n)&&!/영상/.test(n)){const f=fileInfo(n);return `<div class="bb file"><span class="fi">${f[0].split('.').pop().toUpperCase()}</span><div><div class="fn">${esc(f[0])}</div><div class="fs">${t('expired')} · ${f[1]}</div></div></div>`}
+  if(/파일|文件/.test(n)&&!/영상|视频/.test(n)){const f=fileInfo(n);return `<div class="bb file"><span class="fi">${f[0].split('.').pop().toUpperCase()}</span><div><div class="fn">${esc(f[0])}</div><div class="fs">${t('expired')} · ${f[1]}</div></div></div>`}
   const vid=/영상/.test(n);return `<div class="bb exp">${vid?G.video:G.photo}<span>${vid?t('expVideo'):t('expPhoto')}</span></div>`}
  return `<div class="bb">${esc(s)}</div>`}
 function fullDate(l){return fmtLabel(l,true)}
@@ -347,6 +348,8 @@ function refreshChat(pop){const b=$('#msgs');if(!b||view!=='chat')return;b.inner
 function playChatAudio(el){const src=el.dataset.src;document.querySelectorAll('.bb.aud').forEach(x=>{x.classList.remove('playing');x.querySelector('.pl').innerHTML=G.playF});
  if(PLAYER.dataset.voice===src&&!PLAYER.paused){PLAYER.pause();return}nowSong=-1;PLAYER.src=src;PLAYER.dataset.voice=src;PLAYER.play().then(()=>{el.classList.add('playing');el.querySelector('.pl').innerHTML=G.pauseF}).catch(()=>{});
  PLAYER.onended=()=>{el.classList.remove('playing');el.querySelector('.pl').innerHTML=G.playF;delete PLAYER.dataset.voice}}
+function playChatVideo(src,el){const v=el.querySelector('video');document.querySelectorAll('.bb.vid video').forEach(x=>{if(x!==v){x.pause();x.parentElement.classList.remove('playing')}});
+ if(v.paused){v.muted=false;v.play().then(()=>{el.classList.add('playing')}).catch(()=>{});v.onended=()=>{el.classList.remove('playing')}}else{v.pause();el.classList.remove('playing')}}
 /* 키보드 + 자동 타이핑 */
 const KR=[['ㅂ','ㅈ','ㄷ','ㄱ','ㅅ','ㅛ','ㅕ','ㅑ','ㅐ','ㅔ'],['ㅁ','ㄴ','ㅇ','ㄹ','ㅎ','ㅗ','ㅓ','ㅏ','ㅣ'],['ㅋ','ㅌ','ㅊ','ㅍ','ㅠ','ㅜ','ㅡ']];
 const KB_LAT=['qwertyuiop'.split(''),'asdfghjkl'.split(''),'zxcvbnm'.split('')];
@@ -506,7 +509,7 @@ VIEWS.instagram=()=>({cls:'ig',html:`<div class="ig-h"><button onclick="closeApp
  <div class="igtabs"><span class="on">${G.grid}</span><span>${G.reels}</span><span>${G.tag}</span></div>
  <div class="iggrid">${['reel_thumb_01.jpg','reel_thumb_02.jpg','reel_thumb_03.jpg'].map((x,i)=>`<button onclick="videoIndex=${i};push('reel')"><img src="photos/${x}" alt=""><svg class="rc" viewBox="0 0 24 24"><path d="M3.5 7.5A4 4 0 0 1 7.5 3.5h9a4 4 0 0 1 4 4v9a4 4 0 0 1-4 4h-9a4 4 0 0 1-4-4Zm6.5 3v7l6-3.5Z"/></svg><span class="vc">${G.playF.replace('<svg','<svg fill="none" stroke="#fff"')}${REELS[i].v}</span></button>`).join('')}</div></div>
  ${tabbar([['home',''],['search',''],['plusSq',''],['reels',''],['<span style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#bbb,#888);display:block"></span>','']],-1)}`});
-function reelInner(i){const r=REELS[i];return `<div class="vwrap"><video src="media/minji_instagram_0${i+1}.mp4" autoplay loop playsinline></video>
+function reelInner(i){const r=REELS[i];return `<div class="vwrap"><video src="media/minji_instagram_0${i+1}.mp4" loop playsinline preload="metadata" poster="photos/reel_thumb_0${i+1}.jpg"></video>
  <div class="ract"><div class="liked">${G.heart}<span>${r.n+1}</span></div><div>${G.comment}<span>${12+i*7}</span></div><div>${G.send}<span>${3+i}</span></div><div>${G.dotsH}</div></div>
  <div class="rinfo"><div class="u"><img src="media/minji_instagram_avatar.jpg" alt="">minji_jiji<span>${t('followingTag')}</span></div>${esc(r.t)}<br><small>${r.d} · ${t('likedBy','w',r.n)}</small><br><small>${t('origAudio')}</small></div></div>`}
 VIEWS.reel=()=>({cls:'reel dark',dark:true,html:`<div id="rhost">${reelInner(videoIndex)}</div><div class="rtop"><button class="rback" onclick="back()" aria-label="${t('back')}">${G.chevLb}</button><span>${t('reels')}</span>${G.camera}</div>${tabbar([['home',''],['search',''],['plusSq',''],['reels',''],['person','']],3).replace(/<button class="(on)?">/g,'<button class="$1" onclick="back()">')}`,
@@ -514,7 +517,7 @@ VIEWS.reel=()=>({cls:'reel dark',dark:true,html:`<div id="rhost">${reelInner(vid
   pg.addEventListener('pointerup',()=>{if(y0===null)return;y0=null;const w=pg.querySelector('.vwrap');const n=videoIndex+(dy<0?1:-1);
    if(Math.abs(dy)>80&&REELS[n]){w.animate([{transform:w.style.transform},{transform:`translateY(${dy<0?-100:100}%)`}],{duration:250,fill:'forwards'});setTimeout(()=>{videoIndex=n;$('#rhost').innerHTML=reelInner(n);$('#rhost .vwrap').animate([{transform:`translateY(${dy<0?100:-100}%)`},{transform:'none'}],{duration:330,easing:'cubic-bezier(.2,.9,.25,1)'});playReel(pg)},240)}
    else{if(w){w.style.transform='';if(Math.abs(dy)<6){const vd=w.querySelector('video');vd.paused?vd.play():vd.pause()}}}})}});
-function playReel(pg){const v=pg.querySelector('video');if(!v)return;if(nowSong>=0)PLAYER.pause();v.muted=false;v.play().catch(()=>{v.muted=true;v.play().catch(()=>{})})}
+function playReel(pg){const v=pg.querySelector('video');if(!v)return;if(nowSong>=0)PLAYER.pause();v.muted=false;const tryPlay=()=>{v.play().catch(()=>{v.muted=true;v.play().catch(()=>{})})};if(v.readyState>=2){tryPlay()}else{v.addEventListener('canplay',tryPlay,{once:true});v.load()}}
 
 /* --- 음악 --- */
 const artStyle=i=>ART[i]?`background-image:url(${ART[i]})`:'';
@@ -675,5 +678,4 @@ function tick(){typeof updateCrumb==="function"&&updateCrumb();const now=new Dat
  if(callState==='active'){const sec=Math.floor((Date.now()-callStart)/1000);const tm=$('#ctime');if(tm)tm.textContent=pad(Math.floor(sec/60))+':'+pad(sec%60);
   const S=curScript||speech;const idx=Math.min(S.length-1,Math.floor(sec/3));if(idx!==capIdx){capIdx=idx;const c=$('#cap');if(c){c.animate([{opacity:.2,transform:'translateY(6px)'},{opacity:1,transform:'none'}],{duration:280});c.innerHTML=`<small>${esc(dn(S[idx][0]))}</small>${esc(S[idx][1])}`}}
   if(sec>S.length*3+2)endCall()}}
-function fit(){const ph=$('#phone');const mob=innerWidth<=540;ph.classList.toggle('mob',mob);ph.classList.toggle('short',mob&&innerHeight<740);if(mob){ph.style.width=innerWidth+'px';ph.style.height=innerHeight+'px';ph.style.transform='';SC=1}else{ph.style.width='393px';ph.style.height='852px';SC=Math.min((innerHeight-40)/852,(innerWidth-40)/393,1.1);ph.style.transform=`scale(${SC})`}}
-addEventListener('resize',fit);fit();renderLock();renderHome();setStatus(true);setInterval(tick,250);tick();
+function fit(){const ph=$('#phone');const mob=innerWidth<=540;ph.classList.toggle('mob',mob);ph.classList.toggle('short',mob&&innerHeight<740);if(mob){ph.style.width=innerWidth+'px';ph.style.height=innerHeight+'px';ph.style.transform='';SC=1}else{ph.style.width='393px';ph.style.height='852px';SC=Math.min((innerHeight-4

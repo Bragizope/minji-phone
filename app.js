@@ -114,7 +114,7 @@ function appIcon(id){
  case'instagram':return W(`<linearGradient id="gi" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#ffc35c"/><stop offset=".5" stop-color="#ff3d6e"/><stop offset="1" stop-color="#7c3bf0"/></linearGradient>`,`<rect width="60" height="60" fill="url(#gi)"/><rect x="17" y="12.5" width="26" height="34" rx="4.5" fill="none" stroke="#fff" stroke-width="3.2"/><rect x="21.6" y="17" width="16.8" height="17" rx="2" fill="#fff"/>`);
  case'photos':{let p='';for(let i=0;i<10;i++)p+=`<ellipse cx="30" cy="18.2" rx="4.4" ry="10.5" fill="#fff" transform="rotate(${i*36} 30 30)"/>`;return W(L('gp','#9bdcff','#d8f1ff'),`<rect width="60" height="60" fill="url(#gp)"/>${p}<circle cx="30" cy="30" r="7.2" fill="#ffc83d"/><circle cx="30" cy="30" r="7.2" fill="none" stroke="#f0a500" stroke-width="1"/>`)}
  case'mail':return W(L('gm','#3fb0ff','#0a6cf5'),`<rect width="60" height="60" fill="url(#gm)"/><rect x="11.5" y="18" width="37" height="25" rx="3.5" fill="#fff"/><path d="M12.5 20 30 32.5 47.5 20" fill="none" stroke="#1676f3" stroke-width="2.4" stroke-linejoin="round"/>`);
- case'calendar':return W('',`<rect width="60" height="60" fill="#fff"/><text x="30" y="17.5" text-anchor="middle" font-size="${wdLong(2026,5,7).length>5?8:9.5}" font-weight="600" fill="#ff3b30" font-family="-apple-system,Pretendard,sans-serif">${wdLong(2026,5,7)}</text><text x="30" y="47" text-anchor="middle" font-size="31" font-weight="300" fill="#111" font-family="-apple-system,Pretendard,sans-serif">7</text>`);
+ case'calendar':return W('',`<rect width="60" height="60" fill="#fff"/><text x="30" y="17.5" text-anchor="middle" font-size="${wdLong(2024,5,7).length>5?8:9.5}" font-weight="600" fill="#ff3b30" font-family="-apple-system,Pretendard,sans-serif">${wdLong(2024,5,7)}</text><text x="30" y="47" text-anchor="middle" font-size="31" font-weight="300" fill="#111" font-family="-apple-system,Pretendard,sans-serif">7</text>`);
  case'clock':{const d=new Date(),h=d.getHours()%12,m=d.getMinutes();let t='';for(let i=0;i<12;i++)t+=`<path d="M30 8.5v${i%3?2.6:3.8}" stroke="#111" stroke-width="${i%3?1:1.6}" transform="rotate(${i*30} 30 30)"/>`;
   return W('',`<rect width="60" height="60" fill="#000"/><circle cx="30" cy="30" r="24" fill="#fff"/>${t}<path d="M30 30V17" stroke="#111" stroke-width="2.6" stroke-linecap="round" transform="rotate(${h*30+m/2} 30 30)"/><path d="M30 30V11.5" stroke="#111" stroke-width="1.8" stroke-linecap="round" transform="rotate(${m*6} 30 30)"/><path d="M30 34V11" stroke="#ff9500" stroke-width="1" transform="rotate(${(m*6+90)%360} 30 30)"/><circle cx="30" cy="30" r="1.8" fill="#ff9500"/>`)}
  case'notes':return W(L('gn','#ffe27a','#ffc933'),`<rect width="60" height="60" fill="#fff"/><rect width="60" height="17" fill="url(#gn)"/><g stroke="#d9d9de" stroke-width="1.2"><path d="M8 27h44M8 35h44M8 43h44M8 51h44"/></g><g fill="#cfcfd4"><circle cx="10" cy="17" r=".9"/><circle cx="14" cy="17" r=".9"/><circle cx="18" cy="17" r=".9"/><circle cx="22" cy="17" r=".9"/><circle cx="26" cy="17" r=".9"/><circle cx="30" cy="17" r=".9"/><circle cx="34" cy="17" r=".9"/><circle cx="38" cy="17" r=".9"/><circle cx="42" cy="17" r=".9"/><circle cx="46" cy="17" r=".9"/><circle cx="50" cy="17" r=".9"/></g>`);
@@ -130,11 +130,39 @@ function appIcon(id){
 
 /* ---------- 사운드 (WebAudio로 직접 합성) ---------- */
 let AC=null;
-function ac(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC}
-function tone(f,t0,dur,vol=.12,type='sine'){const a=ac();if(!a)return;const t=a.currentTime+t0,o=a.createOscillator(),gn=a.createGain();o.type=type;o.frequency.value=f;gn.gain.setValueAtTime(0,t);gn.gain.linearRampToValueAtTime(vol,t+.008);gn.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(gn).connect(a.destination);o.start(t);o.stop(t+dur+.05)}
-function sfx(k){if(k==='key')tone(2400,0,.025,.035,'triangle');else if(k==='msg'){tone(1046,0,.22,.09);tone(1397,.1,.32,.09)}else if(k==='send'){tone(620,0,.07,.05);tone(930,.05,.09,.05)}else if(k==='unlock'){tone(1300,0,.05,.04,'triangle');tone(1700,.04,.05,.03,'triangle')}else if(k==='lock')tone(500,0,.06,.05,'triangle')}
-function ringOnce(){[[784,0],[988,.2],[1175,.4],[988,.6],[784,1.0],[988,1.2],[1175,1.4],[1319,1.6]].forEach(([f,t])=>{tone(f,t,.35,.11);tone(f*2,t,.18,.03)})}
-document.addEventListener('pointerdown',()=>ac(),{once:true});
+function ac(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(AC&&AC.state==='suspended'){AC.resume().catch(()=>{})}return AC}
+function tone(f,t0,dur,vol=.12,type='sine',dest){const a=ac();if(!a)return;const t=a.currentTime+t0,o=a.createOscillator(),gn=a.createGain();o.type=type;o.frequency.value=f;gn.gain.setValueAtTime(0,t);gn.gain.linearRampToValueAtTime(vol,t+.008);gn.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(gn).connect(dest||a.destination);o.start(t);o.stop(t+dur+.05)}
+/* 铃声总线：挂断时瞬间静音所有已调度的音符 */
+let ringBus=null;
+function rbus(){const a=ac();if(!a)return null;if(!ringBus||ringBus.context!==a){ringBus=a.createGain();ringBus.gain.value=1;ringBus.connect(a.destination)}return ringBus}
+function ringMute(){const bus=rbus();if(bus&&AC){try{bus.gain.cancelScheduledValues(AC.currentTime);bus.gain.setValueAtTime(0,AC.currentTime)}catch(e){}}}
+function ringUnmute(){const bus=rbus();if(bus&&AC){try{bus.gain.cancelScheduledValues(AC.currentTime);bus.gain.setValueAtTime(1,AC.currentTime)}catch(e){}}}
+function noise(t0,dur,vol=.08,filterFreq=2000){const a=ac();if(!a)return;const t=a.currentTime+t0;const buf=a.createBuffer(1,Math.max(1,Math.floor(a.sampleRate*dur)),a.sampleRate);const d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2);const src=a.createBufferSource();src.buffer=buf;const f=a.createBiquadFilter();f.type='bandpass';f.frequency.value=filterFreq;f.Q.value=1;const gn=a.createGain();gn.gain.value=vol;src.connect(f).connect(gn).connect(a.destination);src.start(t)}
+function sfx(k){
+ if(k==='key'){tone(1600,0,.02,.05,'square');tone(800,0,.025,.03,'sine')}
+ else if(k==='keyDel'){tone(1200,0,.02,.04,'square');tone(600,0,.025,.025,'sine')}
+ else if(k==='msg'){tone(1318,0,.15,.12);tone(1760,.1,.25,.1)}
+ else if(k==='msg2'){tone(1046,0,.1,.08);tone(1397,.07,.15,.07);tone(1568,.14,.18,.06)}
+ else if(k==='send'){tone(880,0,.08,.06);tone(1320,.06,.1,.05)}
+ else if(k==='unlock'){tone(1200,0,.05,.05,'triangle');tone(1600,.04,.05,.04,'triangle');tone(2000,.08,.08,.03,'triangle');noise(0,.04,.03,3000)}
+ else if(k==='lock'){tone(600,0,.06,.05,'triangle');tone(400,.05,.07,.04,'triangle');noise(0,.03,.02,1500)}
+ else if(k==='appOpen'){tone(800,0,.04,.04,'sine');tone(1200,.03,.05,.03,'sine')}
+ else if(k==='back'){tone(600,0,.04,.03,'sine');tone(400,.03,.05,.025,'sine')}
+ else if(k==='type'){tone(2000+Math.random()*400,0,.012,.02,'square')}
+ else if(k==='camera'){noise(0,.06,.18,5000);tone(1500,0,.03,.06,'square')}
+ else if(k==='error'){tone(300,0,.12,.08,'square');tone(250,.1,.14,.07,'square')}
+ else if(k==='success'){tone(880,0,.1,.08);tone(1175,.1,.12,.07);tone(1568,.18,.16,.06)}
+ else if(k==='swipe'){noise(0,.1,.04,4000)}
+ else if(k==='stop'){tone(800,0,.05,.06,'triangle');tone(600,.04,.07,.05,'triangle');noise(0,.03,.02,2000)}
+}
+/* iPhone Marimba风格来电铃声 */
+function ringOnce(){
+ const bus=rbus();
+ const notes=[[872,0],[1108,.18],[1312,.36],[1108,.54],[872,.72],[1108,.9],[1312,1.08],[1568,1.26],[1312,1.44],[1108,1.62],[872,1.8]];
+ notes.forEach(([f,t])=>{tone(f,t,.35,.15,'sine',bus);tone(f*2,t,.18,.04,'sine',bus);tone(f*3,t,.1,.015,'sine',bus)});
+}
+document.addEventListener('pointerdown',()=>ac());
+document.addEventListener('touchstart',()=>ac(),{passive:true});
 
 /* ---------- 상태바 / 아일랜드 ---------- */
 function setStatus(dark){curDark=!!dark;$('#sb').classList.toggle('light',curDark);$('#hb').classList.toggle('light',curDark)}
@@ -176,7 +204,7 @@ function renderPin(){$('#pinL').innerHTML=`<div class="pt">${t('enterPass')}</di
 function pinDots(){$('#pdots').innerHTML=[0,1,2,3].map(i=>`<i class="${i<pincode.length?'on':''}"></i>`).join('');$('#pcancel').textContent=pincode?t('delete'):t('cancel')}
 function pinPress(n,el){if(pincode.length>=4)return;el.classList.add('dn');setTimeout(()=>el.classList.remove('dn'),90);sfx('key');vib(8);pincode+=n;pinDots();
  if(pincode.length===4){if(pincode==='0507'){setTimeout(unlock,140)}else{setTimeout(()=>{const d=$('#pdots');d.classList.remove('shake');void d.offsetWidth;d.classList.add('shake');vib([60,40,60]);setTimeout(()=>{pincode='';pinDots()},420)},120)}}}
-function pinCancelOrDel(){if(pincode){pincode=pincode.slice(0,-1);pinDots();return}pinCancel()}
+function pinCancelOrDel(){if(pincode){pincode=pincode.slice(0,-1);pinDots();sfx('keyDel');vib(6);return}pinCancel()}
 function pinCancel(){view='lock';const p=$('#pinL');p.animate([{opacity:1},{opacity:0,transform:'translateY(30px)'}],{duration:300}).onfinish=()=>p.style.display='none';
  const lk=$('#lkc');lk.getAnimations().forEach(a=>a.cancel());lk.style.pointerEvents='';lk.animate([{transform:'translateY(-120px)',opacity:0},{transform:'none',opacity:1}],{duration:450,easing:'cubic-bezier(.2,.9,.25,1)'});$('#wall').classList.remove('dim')}
 function unlock(){sfx('unlock');vib([20,50,20]);view='home';$('#wall').classList.remove('dim');
@@ -195,7 +223,7 @@ function badgeOf(id){if(id==='phone')return 3+declined;if(id==='mail')return[0,1
 function appBtn(id){const b=badgeOf(id);return `<button class="app" data-app="${id}" onclick="openApp('${id}',this.firstElementChild)"><div class="icon"><div class="ic">${appIcon(id)}</div>${b?`<span class="bdg">${b}</span>`:''}</div><span class="lbl">${t('app_'+id)}</span></button>`}
 function renderHome(){
  HOME.innerHTML=`<div class="hgrid">
-  <button class="widget wcal" data-app="calendar" onclick="openApp('calendar',this)"><div class="wd">${wdLong(2026,5,7)}</div><div class="wn">7</div>${(events[7]||[]).map(x=>`<div class="we">${esc(x)}<small>${t('allDay')}</small></div>`).join('')}</button>
+  <button class="widget wcal" data-app="calendar" onclick="openApp('calendar',this)"><div class="wd">${wdLong(2024,5,7)}</div><div class="wn">7</div>${(events[7]||[]).map(x=>`<div class="we">${esc(x)}<small>${t('allDay')}</small></div>`).join('')}</button>
   <button class="widget wwx" data-app="weather" onclick="openApp('weather',this)"><div class="c">${t('seoul')} ➚</div><div class="tp">18°</div><span style="position:absolute;top:14px;right:14px">${G.sun}</span><div class="ds">${t('mostlySunny')}<small>${t('hiLo')}</small></div></button>
   ${['instagram','photos','mail','calendar','clock','notes','weather','settings','maps'].map(appBtn).join('')}
  </div><button class="spot" onclick="this.animate([{transform:'translateX(-50%) scale(1)'},{transform:'translateX(-50%) scale(1.08)'},{transform:'translateX(-50%) scale(1)'}],300)">${G.search.replace('<svg','<svg width="13" height="13"')}${t('search')}</button>
@@ -222,7 +250,7 @@ function show(id,anim='swap'){
 function zoomFrames(r){const W=SCREEN.clientWidth,H=SCREEN.clientHeight,s=r.w/W,iy=Math.max(0,(H-r.h/s)/2),dx=r.x+r.w/2-W/2,dy=r.y+r.h/2-H/2;
  return[{transform:`translate(${dx}px,${dy}px) scale(${s})`,clipPath:`inset(${iy}px 0px round ${15/s}px)`,opacity:.25},{transform:'translate(0px,0px) scale(1)',clipPath:`inset(0px 0px round ${devRadius()}px)`,opacity:1}]}
 function openApp(id,el){if(callState)return;if(view!=='home'){return}
- lastRect=el?relRect(el):null;APP.innerHTML='';show(id,'none');const tok=++animTok;
+ sfx('appOpen');vib(6);lastRect=el?relRect(el):null;APP.innerHTML='';show(id,'none');const tok=++animTok;
  APP.style.visibility='visible';APP.getAnimations().forEach(a=>a.cancel());
  APP.animate(zoomFrames(lastRect||{x:166,y:396,w:60,h:60}),{duration:540,easing:'cubic-bezier(.2,.9,.22,1)'});
  setTimeout(()=>{APP.getAnimations().forEach(a=>a.cancel());APP.style.transform='none';APP.style.clipPath='none';APP.style.opacity='1'},580);
@@ -230,7 +258,7 @@ function openApp(id,el){if(callState)return;if(view!=='home'){return}
  setTimeout(()=>{if(tok===animTok&&view!=='home')HOME.style.visibility='hidden'},450);
  if(firstOpen){firstOpen=false;setTimeout(()=>{$('#hb').classList.add('pulse');setTimeout(()=>$('#hb').classList.remove('pulse'),3400)},900)}}
 function closeApp(){if(callState||['home','lock','pin'].includes(view))return;
- const root=rootOf(view);if(PLAYER.dataset.voice)PLAYER.pause();
+ sfx('back');vib(5);const root=rootOf(view);if(PLAYER.dataset.voice)PLAYER.pause();
  view='home';renderHome();HOME.style.visibility='visible';setStatus(true);
  const icon=HOME.querySelector(`.app[data-app="${root}"] .icon`);const r=icon?relRect(icon):{x:166,y:396,w:60,h:60};
  const tok=++animTok;APP.getAnimations().forEach(a=>a.cancel());
@@ -241,7 +269,7 @@ function closeApp(){if(callState||['home','lock','pin'].includes(view))return;
  setTimeout(()=>{HOME.getAnimations().forEach(a=>a.cancel());HOME.style.transform='none';HOME.style.opacity='1'},500);
  updateIsland()}
 function push(id){show(id,'push')}
-function back(){if(PARENT[view])show(PARENT[view],'pop');else closeApp()}
+function back(){if(PARENT[view]){sfx('back');vib(5);show(PARENT[view],'pop')}else closeApp()}
 function hbAction(){if(callState)return;const vw=OV.querySelector('.viewer');if(vw)return closeViewer();if(OV.querySelector('.np'))return closeNP();
  if(view==='lock')return goPin();if(view==='pin')return;if(view==='home')return HOME.animate([{transform:'none'},{transform:'scale(.97)'},{transform:'none'}],250);closeApp()}
 (function hbGesture(){const hb=$('#hb');let y0=null;hb.addEventListener('pointerdown',e=>{y0=e.clientY;hb.setPointerCapture(e.pointerId)});hb.addEventListener('pointerup',e=>{if(y0===null)return;y0=null;hbAction()})})();
@@ -259,7 +287,20 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')hbAction();else if(e
 document.addEventListener('mouseup',e=>{if(e.button===3){e.preventDefault();goBack()}});
 try{history.pushState({wb:1},'');addEventListener('popstate',()=>{goBack();history.pushState({wb:1},'')})}catch(e){}
 
-/* ---------- 공통 템플릿 ---------- */
+/* ---------- 飞行模式 ---------- */
+let airplaneMode=false;
+function toggleAirplane(){
+ airplaneMode=!airplaneMode;
+ if(airplaneMode&&callState==='ring'){try{declineCall()}catch(e){}}
+ const row=$('#airRow');if(row){const b=row.querySelector('.sw');if(b)b.classList.toggle('on',airplaneMode)}
+ sfx(airplaneMode?'lock':'unlock');
+ renderStatusNet();
+}
+function renderStatusNet(){
+ const box=$('#sbq');if(!box)return;
+ box.style.display=airplaneMode?'none':'';
+ const air=$('#sba');if(air)air.style.display=airplaneMode?'':'none';
+}
 function navHTML(o){return `<div class="nav ${o.solid?'solid':''}">${o.back!==undefined?`<button class="nb-back" onclick="${o.backFn||'back()'}">${G.chevL}${o.back}</button>`:(o.left||'<span></span>')}<div class="nb-title">${o.title||''}</div><div class="nb-right">${o.right||''}</div></div>`}
 function tabbar(items,on,cls=''){return `<div class="tabbar ${cls}">${items.map(([ic,l],i)=>`<button class="${i===on?'on':''}">${G[ic]||ic}<span>${l}</span></button>`).join('')}</div>`}
 const sw=(on,fn)=>`<button class="sw ${on?'on':''}" onclick="this.classList.toggle('on');vib(8);${fn||''}"></button>`;
@@ -283,7 +324,7 @@ function calEvents(){return events[selectedDay]||[]}
 VIEWS.calendar=()=>{const first=5,days=31;let c='';for(let i=0;i<first;i++)c+='<div></div>';
  for(let d=1;d<=days;d++){const dow=(first+d-1)%7,has=!!events[d],bd=d===7;c+=`<button class="cal-d ${bd?'td':''} ${d===selectedDay?'sel':''} ${dow===0||dow===6?'we':''}" onclick="selectedDay=${d};show('calendar')"><span>${d}</span>${has?'<i></i>':''}</button>`}
  const ev=calEvents().map(x=>{const m=x.split(' · ');return `<div class="evt"><span class="bar" style="background:${x.startsWith('🎂')?'#ff9500':'#af52de'}"></span><b>${esc(m[0])}</b><small>${m[1]||t('allDay')}</small></div>`}).join('')||`<div class="evt muted">${t('noEvents')}</div>`;
- return{html:navHTML({title:'',back:fmtYear(2026),backFn:'closeApp()',right:G.list+G.search+G.plus})+`<div class="scroll" style="padding-bottom:120px"><div style="display:flex;justify-content:space-between;align-items:center;margin:0 16px 8px"><h1 class="lt" style="margin:0">${fmtMonth(calMonth)}</h1></div>
+ return{html:navHTML({title:'',back:fmtYear(2024),backFn:'closeApp()',right:G.list+G.search+G.plus})+`<div class="scroll" style="padding-bottom:120px"><div style="display:flex;justify-content:space-between;align-items:center;margin:0 16px 8px"><h1 class="lt" style="margin:0">${fmtMonth(calMonth)}</h1></div>
  <div class="cal-g cal-w">${wdNarrow().map(w=>`<div>${w}</div>`).join('')}</div><div class="cal-g" id="calg">${c}</div><div style="border-top:.5px solid var(--sep);margin-top:4px;padding-top:4px">${ev}</div></div>
  <div class="tabbar" style="color:#ff3b30">${[t('today'),t('calendars'),t('inbox')].map(x=>`<button style="color:#ff3b30;font-size:16px;justify-content:center">${x}</button>`).join('')}</div>`}};
 function calNav(d){const n=calMonth+d;if(n<5||n>5)return;calMonth=n;selectedDay=7;const pg=show('calendar');pg.querySelector('#calg').animate([{transform:`translateX(${d*40}%)`,opacity:0},{transform:'none',opacity:1}],{duration:350,easing:'cubic-bezier(.2,.9,.25,1)'})}
@@ -400,10 +441,11 @@ function hideTyping(){const t=$('#typ');if(t)t.remove()}
 function deliverEunho(text){todayChat.push([text,'them',nowAmpm()]);
  if(view==='chat'&&chatId==='민희진 대표'){refreshChat(true);tone(1318,0,.12,.05)}
  else{eunhoUnread++;notify(text);if(view==='kakao')show('kakao');if(view==='home')renderHome()}}
-function incomingMsg(text){if(view==='chat'&&chatId==='민희진 대표'){showTyping();setTimeout(()=>{hideTyping();deliverEunho(text)},1500)}else deliverEunho(text)}
+function incomingMsg(text){if(airplaneMode)return;if(view==='chat'&&chatId==='민희진 대표'){showTyping();setTimeout(()=>{hideTyping();deliverEunho(text)},1500)}else deliverEunho(text)}
 
 /* 通用消息发送：支持任意成员 */
 function sendMsgFrom(who,text){
+ if(airplaneMode)return;
  if(view==='chat'&&chatId===who){
    /* 正在和这个人聊天，显示正在输入然后发送 */
    const b=$('#msgs');if(b&&!$('#typ')){
@@ -464,10 +506,9 @@ VIEWS.maild=()=>{const e=emails[mailId],school=![2,4].includes(mailId);const bod
 
 /* --- 사진 --- */
 const allPhotos=[];photoSections.forEach(s=>s[1].forEach(n=>allPhotos.push({src:'photos/'+n,sec:photoDates[n]||s[0],sub:s[2]})));
-const STORY_I=allPhotos.length;allPhotos.push({src:'photos/story_capture_final.png',thumb:'photos/story_last_thumbnail.jpg',sec:'2025년 11월 27일',sub:t('screenshot',fmtTime(21*60+41))});
 VIEWS.photos=()=>{let k=0;return{html:`<div class="nav"><span></span><div class="nb-title">${t('library')}</div><div class="nb-right">${G.search}<span>${t('select')}</span></div></div><div class="scroll" style="padding-bottom:120px"><h1 class="lt">${t('library')}</h1><div class="muted" style="margin:-6px 16px 10px;font-size:15px">${t('nPhotos',allPhotos.length)}</div>
  ${photoSections.map(s=>`<div class="ph-sec">${fmtLabel(s[0])}</div><div class="ph-grid">${s[1].map(n=>`<button data-pi="${k}" onclick="openViewer(${k++},this.firstElementChild)"><img src="photos/${n}" loading="lazy" alt=""></button>`).join('')}</div>`).join('')}
- <div class="ph-sec" style="margin-top:12px">${fmtYM(2025,11)}</div><div class="ph-grid"><button data-pi="${STORY_I}" onclick="openViewer(${STORY_I},this.firstElementChild)"><img src="photos/story_last_thumbnail.jpg" alt=""></button></div></div>
+ </div>
  <div class="phtabs"><button>${t('years')}</button><button>${t('months')}</button><button class="on">${t('allPhotos')}</button></div>`,init:pg=>{const sc=pg.querySelector('.scroll');sc.scrollTop=0}}};
 /* 사진 뷰어 */
 let vList=allPhotos,vIdx=0;
@@ -540,48 +581,65 @@ PLAYER.addEventListener('timeupdate',()=>{const b=$('#npbar');if(b&&PLAYER.durat
 PLAYER.addEventListener('play',updateIsland);PLAYER.addEventListener('pause',updateIsland);
 
 
-/* --- 지도 (가상의 한림예고 동네) --- */
-let mapSel=null,mapPos={x:-480,y:-640};
-function mapSVG(){return `<svg width="900" height="1200" viewBox="0 0 900 1200" style="position:absolute;inset:0">
- <rect width="900" height="1200" fill="#f2efe9"/>
- <path d="M0 980C160 940 260 1010 380 1080S640 1150 900 1120V1200H0Z" fill="#b9dcf7"/>
- <path d="M60 700h260v230H60Z" fill="#cfe8c4" rx="20"/><path d="M820 0h80v380h-80Z" fill="#cfe8c4"/>
- <rect x="110" y="110" width="460" height="460" rx="18" fill="#ece3d6"/>
- <g fill="#ddd2c2"><rect x="160" y="180" width="110" height="90" rx="6"/><rect x="400" y="190" width="120" height="110" rx="6"/><rect x="270" y="380" width="130" height="80" rx="6"/><rect x="160" y="400" width="80" height="90" rx="6"/><rect x="440" y="400" width="80" height="110" rx="6"/></g>
- <g fill="#e6e1d8"><rect x="610" y="640" width="90" height="70" rx="4"/><rect x="720" y="640" width="120" height="60" rx="4"/><rect x="610" y="730" width="70" height="90" rx="4"/><rect x="790" y="730" width="80" height="70" rx="4"/><rect x="610" y="900" width="140" height="60" rx="4"/><rect x="770" y="860" width="100" height="90" rx="4"/><rect x="640" y="340" width="120" height="60" rx="4"/><rect x="640" y="470" width="100" height="70" rx="4"/></g>
- <g stroke="#d8d3ca" stroke-width="22" fill="none" stroke-linecap="round"><path d="M0 605H900"/><path d="M590 0V1200"/><path d="M590 760H900"/><path d="M590 450H820"/><path d="M340 570V1000"/><path d="M760 760V980"/></g>
- <g stroke="#fff" stroke-width="18" fill="none" stroke-linecap="round"><path d="M590 0V1200"/><path d="M590 760H900"/><path d="M590 450H820"/><path d="M340 570V1000"/><path d="M760 760V980"/></g>
- <path d="M0 605H900" stroke="#ffe08a" stroke-width="20"/>
- <g stroke="#fff" stroke-width="5" fill="none" stroke-dasharray="2 9"><path d="M120 340H560M340 120V560"/></g>
- <g font-family="-apple-system,Pretendard,sans-serif" fill="#8a8578" font-size="13" font-weight="600" text-anchor="middle">
-  <text x="340" y="152" font-size="16" fill="#7d6b55">${t('m_univ')}</text><text x="190" y="760" fill="#5f8f4e">${t('m_park')}</text>
-  <text x="450" y="598" fill="#9a7d2c">${t('m_road')}</text><text x="604" y="250" transform="rotate(90 604 250)">${t('m_back')}</text><text x="830" y="752">${t('m_alley')}</text><text x="700" y="442">${t('m_cafe')}</text>
-  <text x="335" y="425" font-size="11">${t('m_union')}</text><text x="200" y="450" font-size="11">${t('m_lib')}</text><text x="340" y="582" font-size="11">${t('m_gate')}</text><text x="560" y="1110" fill="#5b8fbf">${t('m_stream')}</text>
- </g></svg>`}
-const MG={home:'<path d="M4 11 12 4l8 7v9h-5v-6H9v6H4Z"/>',cup:'<path d="M5 8h11v6a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5Z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16M8 3v2M11 3v2"/>',pin:'<circle cx="12" cy="10" r="3"/><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11Z"/>',bag:'<path d="M5 8h14l-1 12H6Z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>',game:'<rect x="3" y="8" width="18" height="10" rx="5"/><path d="M8 11v4M6 13h4"/><circle cx="15.5" cy="12" r=".6"/><circle cx="17" cy="14.5" r=".6"/>',mic:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/>',bowl:'<path d="M3.5 11h17a8.5 8.5 0 0 1-17 0Z"/><path d="M9 7c0-2 2-2 2-4M13 7c0-2 2-2 2-4"/>',bus:'<rect x="5" y="3" width="14" height="15" rx="3"/><path d="M5 11h14M8 18v2.5M16 18v2.5"/><circle cx="8.5" cy="14.5" r=".7"/><circle cx="15.5" cy="14.5" r=".7"/>'};
-const mg=k=>`<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">${MG[k]}</svg>`;
-const placeById=id=>MAP_PLACES.find(p=>p.id===id)||MAP_PLACES.find(p=>p.name===id);
-function mapSheet(){if(mapSel){const p=placeById(mapSel);return `<div class="grab"></div><div class="mdet"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><h2>${esc(p.name)}</h2><div class="sb">${esc(p.sub)}</div></div><button onclick="selPlace(null)" style="width:30px;height:30px;border-radius:50%;background:#e3e3e8;color:#7c7c80;font-size:17px">✕</button></div>
-  <div class="acts"><button class="pri">${G.send.replace('<svg','<svg style="color:#fff"')}${p.id==='home'?t('currentLoc'):t('walkMin',p.id==='s'?4:p.id==='corner'?9:12)}</button><button>${G.star}${p.fav?t('favorited'):t('favorite')}</button><button>${G.share}${t('share')}</button><button>${G.dotsH}${t('moreInfo')}</button></div>
-  <div class="inf">${(p.info.length?p.info:[[t('info'),t('noInfo')]]).map(r=>`<div><small>${esc(r[0])}</small>${esc(r[1])}</div>`).join('')}</div></div>`}
- const favs=MAP_PLACES.filter(p=>p.fav);
- return `<div class="grab"></div><div class="srch" style="margin:0 0 14px;background:rgba(118,118,128,.14)">${G.search}${t('searchMaps')}</div>
- <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:600;color:var(--grey);margin-bottom:8px"><span>${t('favorites')}</span><span style="color:var(--blue);font-weight:500">${t('moreInfo')}</span></div>
- <div class="mfav">${favs.map(p=>`<button onclick="selPlace('${p.id}')"><span class="fc" style="background:${p.color}">${mg(p.glyph)}</span>${esc(p.name)}<small>${p.id==='home'?t('currentLoc'):t('minN',p.id==='s'?4:9)}</small></button>`).join('')}<button><span class="fc" style="background:#e3e3e8"><svg viewBox="0 0 24 24" style="stroke:var(--blue)"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg></span>${t('add')}<small>&nbsp;</small></button></div>
- <div style="font-size:15px;font-weight:600;color:var(--grey);margin:16px 0 8px">${t('recentsMap')}</div><div class="group" style="margin:0">${MAP_RECENTS.map(r=>`<button class="row tap" style="--inset:58px;min-height:56px" onclick="selPlace('${placeById(r[0]).id}')"><span class="st-ic" style="background:${placeById(r[0]).color};border-radius:50%">${mg(placeById(r[0]).glyph).replace('<svg','<svg style="stroke:#fff;fill:none;stroke-width:2"')}</span><span style="flex:1"><div style="font-size:16px">${esc(r[0])}</div><div class="muted" style="font-size:13px">${esc(r[1])}</div></span></button>`).join('')}</div>`}
-function mapCanvas(){const pins=MAP_PLACES.map(p=>`<div class="mpin ${p.fav?'':'small'} ${mapSel===p.id?'sel':''}" style="left:${p.x}px;top:${p.y}px" onclick="event.stopPropagation();selPlace('${p.id}')"><span class="pc" style="background:${p.color}">${mg(p.glyph)}</span>${esc(p.name)}</div>`).join('');
- const h=placeById('home');return mapSVG()+`<div class="me-dot" style="left:${h.x-26}px;top:${h.y+30}px"></div>`+pins}
-function setMapPos(x,y,anim){const cv=$('#mapcv');if(!cv)return;const W=SCREEN.clientWidth,H=SCREEN.clientHeight;mapPos={x:Math.min(0,Math.max(W-900,x)),y:Math.min(0,Math.max(H-1200,y))};const t=`translate(${mapPos.x}px,${mapPos.y}px)`;if(anim)cv.animate([{transform:cv.style.transform||'none'},{transform:t}],{duration:450,easing:'cubic-bezier(.2,.9,.25,1)'});cv.style.transform=t}
-function centerOn(p,anim){const W=SCREEN.clientWidth,H=SCREEN.clientHeight;setMapPos(W/2-p.x,H*.27-p.y,anim)}
-function selPlace(id){mapSel=id;const s=$('#msheet');if(s){s.innerHTML=mapSheet();s.animate([{transform:'translateY(16px)',opacity:.6},{transform:'none',opacity:1}],{duration:260})}
- document.querySelectorAll('.mpin').forEach(el=>el.classList.remove('sel'));if(id){const p=placeById(id);const i=MAP_PLACES.indexOf(p);const el=document.querySelectorAll('.mpin')[i];if(el)el.classList.add('sel');centerOn(p,true);vib(8)}}
-VIEWS.maps=()=>({cls:'mapv',html:`<div class="mapwrap" id="mapwrap"><div class="mapcv" id="mapcv">${mapCanvas()}</div></div>
- <div class="mbtns"><button>${'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7l9-4 9 4-9 4Z"/><path d="m3 12 9 4 9-4M3 17l9 4 9-4"/></svg>'}</button><button onclick="centerOn(placeById('home'),true)">${'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 3.5 3.5 10.6l7.2 2.7 2.7 7.2Z"/></svg>'}</button></div>
- <div class="msheet" id="msheet">${mapSheet()}</div>`,
- init:pg=>{centerOn(placeById(mapSel||'home'));const w=pg.querySelector('#mapwrap');let x0=null,y0=0,sx=0,sy=0,mv=false;
-  w.addEventListener('pointerdown',e=>{x0=e.clientX;y0=e.clientY;sx=mapPos.x;sy=mapPos.y;mv=false});
-  w.addEventListener('pointermove',e=>{if(x0===null)return;const dx=(e.clientX-x0)/SC,dy=(e.clientY-y0)/SC;if(Math.hypot(dx,dy)>4)mv=true;if(mv){w.style.cursor='grabbing';setMapPos(sx+dx,sy+dy)}});
-  w.addEventListener('pointerup',()=>{x0=null;w.style.cursor=''})}});
+/* --- MINJI足迹手账 --- */
+let fpSel=null;
+const FP_PLACES=[
+ {id:'company',name:'首尔 · HYBE公司',date:'2022年8月',order:1,photo:'photos/footprint/fp_seoul_company.jpg',sticker:'photos/stickers/sticker_1.jpg',story:'今天又是在练习室待到凌晨的一天。镜子里的自己头发都湿透了，可是舞蹈还有一个细节没到位。出道前的那段时间真的很拼命，每天早上七点到公司，晚上十二点才离开。现在想起来，那些累到在地板上躺着不想动的日子，反而成了最珍贵的回忆。现在每次回到公司，还是会习惯性地去三楼的练习室看看，好像还能听到当时我们五个喊拍子的声音。'},
+ {id:'school',name:'首尔 · 翰林艺高',date:'2023年3月',order:2,photo:'photos/footprint/fp_seoul_school.jpg',sticker:'photos/stickers/sticker_2.jpg',story:'今天穿了新校服去学校，实用音乐科的教室在四楼，阳光照进来的时候特别好看。同学们都很友好，有人认出我是NewJeans的MINJI，有点害羞但也很开心。上学和舞台是完全不同的两种生活，在学校里我就是一个普通的高中生，要写作业要考试，这种感觉很踏实。中午和朋友在食堂吃了炒年糕，味道一般但是和大家一起吃就很开心。'},
+ {id:'paris',name:'法国 · 巴黎',date:'2023年7月',order:3,photo:'photos/footprint/fp_paris.jpg',sticker:'photos/stickers/sticker_4.jpg',story:'第一次来巴黎，第一次出席时装周。出发前紧张了好几天，试穿礼服的时候手都在抖。秀场那天，巴黎的阳光特别好，我穿着香奈儿的套装走在塞纳河边，感觉像在做梦。看秀的时候遇到了很多之前只在杂志上见过的人，大家都很友好。结束后在酒店阳台上看巴黎的夜景，心里想：原来金玟池也能走到这里啊。谢谢香奈儿，也谢谢一直努力的自己。'},
+ {id:'tokyo',name:'日本 · 东京',date:'2023年8月',order:4,photo:'photos/footprint/fp_tokyo.jpg',sticker:'photos/stickers/sticker_5.jpg',story:'东京的街道干净得让人舒服，便利店的布丁真的很好吃。日本出道舞台那天，台下的粉丝们喊我们名字的时候，我差点哭出来。语言不通没关系，音乐是共通的。工作结束后和成员们去了涩谷，吃了一兰拉面，还在自动售货机买了限定饮料。东京的夜晚很热闹，但我更喜欢清晨空无一人的街道，那种安静的感觉和春川有点像。'},
+ {id:'jeju',name:'济州岛',date:'2023年9月',order:5,photo:'photos/footprint/fp_jeju.jpg',sticker:'photos/stickers/sticker_6.jpg',story:'终于休假了！和成员们一起来了济州岛。海真的好蓝好蓝，我们在海边玩了整整一天，HANNI被浪打湿了全身还在笑。晚上住了海景民宿，五点就起来看日出，大家都困得东倒西歪但还是坚持等到了太阳出来。吃了黑猪肉和橘子，济州岛的橘子真的太甜了。这种不需要赶行程的日子太珍贵了，希望以后还能再来。'},
+ {id:'chuncheon',name:'江原道 · 春川',date:'2024年2月',order:6,photo:'photos/footprint/fp_chuncheon.jpg',sticker:'photos/stickers/sticker_3.jpg',story:'终于回到春川了。老家门口的那棵银杏树还是老样子，奶奶做的土豆汤还是那个味道。小时候每天走的那条路，现在走起来觉得变短了，大概是我长高了吧。见了小时候的朋友，大家都变了很多，但聊起小学的事情还是会笑到肚子疼。春川的冬天很冷，但是心里很暖。下次要带成员们一起来，让她们尝尝奶奶做的饭。'},
+ {id:'newyork',name:'美国 · 纽约',date:'2024年4月',order:7,photo:'photos/footprint/fp_newyork.jpg',sticker:'photos/stickers/sticker_7.jpg',story:'纽约的节奏好快，每个人走路都像在跑。我们在中央公园散步的时候，有人认出了我们，还跟我们说喜欢我们的歌，那种感觉很奇妙。舞台那天，台下坐满了人，尖叫声大到我听不清自己的声音。结束后在时代广场站了一会儿，看着大屏幕上自己的脸，有点不真实。从春川到首尔，从首尔到纽约，这条路比我想象的长，但每一步都值得。'}
+];
+const FP_SORTED=[...FP_PLACES].sort((a,b)=>a.order-b.order);
+function fpPlaceById(id){return FP_PLACES.find(p=>p.id===id)}
+function fpPlaceCards(){return FP_SORTED.map((p,i)=>`
+<div class="fp-place" onclick="fpOpenDetail('${p.id}')">
+ <div class="fp-dot"></div>
+ <div class="fp-place-card">
+  <div class="fp-date-tag">${p.date}</div>
+  <div class="fp-photo-wrap">
+   <img src="${p.photo}" class="fp-place-photo" loading="lazy" alt="">
+   <img src="${p.sticker}" class="fp-place-sticker" alt="">
+  </div>
+  <div class="fp-place-info">
+   <div class="fp-place-name">${p.name}</div>
+   <div class="fp-place-story">${p.story.substring(0,55)}...</div>
+  </div>
+ </div>
+</div>`).join('')}
+function fpDetailHTML(p){return `<div class="fp-detail-card">
+ <div class="fp-detail-grab"></div>
+ <div class="fp-detail-close" onclick="fpCloseDetail()">✕</div>
+ <div class="fp-detail-content">
+  <div class="fp-detail-header">
+   <div class="fp-detail-title">${p.name}</div>
+   <div class="fp-detail-date">${p.date}</div>
+  </div>
+  <div class="fp-detail-photo-wrap">
+   <img src="${p.photo}" class="fp-detail-photo" alt="">
+   <img src="${p.sticker}" class="fp-detail-sticker" alt="">
+  </div>
+  <div class="fp-detail-story">${p.story}</div>
+ </div>
+</div>`}
+function fpOpenDetail(id){fpSel=id;const p=fpPlaceById(id);if(!p)return;const d=$('#fpDetail');if(d){d.innerHTML=fpDetailHTML(p);d.classList.add('show')}vib(8);sfx('appOpen')}
+function fpCloseDetail(){const d=$('#fpDetail');if(d)d.classList.remove('show')}
+VIEWS.maps=()=>({cls:'fp-map',html:`
+<div class="fp-header">
+ <div class="fp-title-bar">MINJI的足迹</div>
+ <div class="fp-count">${FP_PLACES.length} 站</div>
+</div>
+<div class="fp-timeline" id="fpTimeline">
+ <div class="fp-cards"><div class="fp-line"></div>${fpPlaceCards()}</div>
+</div>
+<div class="fp-progress"><div class="fp-progress-bar" id="fpProgress"></div></div>
+<div class="fp-detail" id="fpDetail" onclick="if(event.target===this)fpCloseDetail()"></div>`,
+init:pg=>{const tl=pg.querySelector('#fpTimeline');const bar=pg.querySelector('#fpProgress');
+ tl.addEventListener('scroll',()=>{const max=tl.scrollWidth-tl.clientWidth;const pct=max>0?(tl.scrollLeft/max*100):0;if(bar)bar.style.width=Math.max(14,pct)+'%'});
+ const detail=pg.querySelector('#fpDetail');
+ detail.addEventListener('click',e=>{if(e.target===detail)fpCloseDetail()})}});
 
 /* --- 날씨 --- */
 VIEWS.weather=()=>{const h=new Date().getHours();const hrs=[];for(let i=0;i<12;i++){const hh=(h+i)%24,night=hh>=19||hh<6;const tp=Math.round(15+5*Math.sin((hh-9)/24*2*Math.PI));hrs.push(`<div><span>${i?fmtHour(hh):t('now')}</span>${night?G.moon:(hh%5===0?G.pcloud:G.sun)}<span>${i?tp:18}°</span></div>`)}
@@ -597,7 +655,7 @@ const sIc=(c,i)=>`<span class="st-ic" style="background:${c}">${(G[i]||i).replac
 const sRow=(c,i,t,r='',fn)=>`<div class="row ${fn?'tap':''}" style="--inset:57px;cursor:${fn?'pointer':'default'}" ${fn?`onclick="${fn}"`:''}>${sIc(c,i)}<span style="flex:1">${t}</span>${r.startsWith('<button')?r:`<span class="muted" style="font-size:17px">${r}</span>${G.chevR}`}</div>`;
 VIEWS.settings=()=>({cls:'grouped',html:navHTML({title:t('app_settings')})+`<div class="scroll"><h1 class="lt">${t('app_settings')}</h1><div class="srch">${G.search}${t('search')}</div>
  <div class="group" style="margin-bottom:22px"><div class="row" style="min-height:76px"><span style="width:58px;height:58px;border-radius:50%;background:linear-gradient(#a8aeb8,#7f858f);color:#fff;font-size:24px;font-weight:600;display:grid;place-items:center">민</span><div style="flex:1"><b style="font-size:20px;font-weight:500">김민지</b><div class="muted" style="font-size:13px">${t('acct')}</div></div>${G.chevR}</div></div>
- <div class="group" style="margin-bottom:22px">${sRow('#ff9500','<svg viewBox="0 0 24 24"><path d="M21 15.5v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0v5l-8 5v2l8-2.5V18l-2 1.5V21l3.5-1 3.5 1v-1.5L13 18v-5Z" fill="#fff"/></svg>',t('airplane'),sw(false))}${sRow('#007aff','<svg viewBox="0 0 16 12"><path fill="#fff" d="M8 2.3c2.3 0 4.4.9 6 2.4l1.2-1.2A10.3 10.3 0 0 0 8 .6 10.3 10.3 0 0 0 .8 3.5L2 4.7a8.6 8.6 0 0 1 6-2.4Zm0 3.4c1.4 0 2.6.5 3.6 1.4l1.2-1.2A6.8 6.8 0 0 0 8 4a6.8 6.8 0 0 0-4.8 1.9l1.2 1.2c1-.9 2.2-1.4 3.6-1.4Zm0 3.4c-.6 0-1.2.2-1.6.6L8 11.3l1.6-1.6c-.4-.4-1-.6-1.6-.6Z"/></svg>','Wi-Fi','minji_0507')}${sRow('#007aff','<svg viewBox="0 0 24 24"><path d="m7 7 10 10-5 4V3l5 4L7 17" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></svg>','Bluetooth',t('on'))}${sRow('#34c759','<svg viewBox="0 0 24 24"><path d="M12 4v16M7 9v11M17 7v13M2 13v7M22 11v9" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg>',t('cellular'))}${sRow('#34c759','<svg viewBox="0 0 24 24"><rect x="3" y="7" width="16" height="10" rx="2.5" fill="none" stroke="#fff" stroke-width="2"/><rect x="5.5" y="9.5" width="8" height="5" rx="1" fill="#fff"/></svg>',t('battery'),'64%')}</div>
+ <div class="group" style="margin-bottom:22px"><div class="row" id="airRow" style="--inset:57px"><span class="st-ic" style="background:#ff9500"><svg viewBox="0 0 24 24" style="color:#fff" width="18" height="18"><path d="M21 15.5v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0v5l-8 5v2l8-2.5V18l-2 1.5V21l3.5-1 3.5 1v-1.5L13 18v-5Z" fill="currentColor"/></svg></span><span style="flex:1">${t('airplane')}</span><button class="sw ${airplaneMode?'on':''}" onclick="event.stopPropagation();toggleAirplane()"></button></div>${sRow('#007aff','<svg viewBox="0 0 16 12"><path fill="#fff" d="M8 2.3c2.3 0 4.4.9 6 2.4l1.2-1.2A10.3 10.3 0 0 0 8 .6 10.3 10.3 0 0 0 .8 3.5L2 4.7a8.6 8.6 0 0 1 6-2.4Zm0 3.4c1.4 0 2.6.5 3.6 1.4l1.2-1.2A6.8 6.8 0 0 0 8 4a6.8 6.8 0 0 0-4.8 1.9l1.2 1.2c1-.9 2.2-1.4 3.6-1.4Zm0 3.4c-.6 0-1.2.2-1.6.6L8 11.3l1.6-1.6c-.4-.4-1-.6-1.6-.6Z"/></svg>','Wi-Fi','minji_0507')}${sRow('#007aff','<svg viewBox="0 0 24 24"><path d="m7 7 10 10-5 4V3l5 4L7 17" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></svg>','Bluetooth',t('on'))}${sRow('#34c759','<svg viewBox="0 0 24 24"><path d="M12 4v16M7 9v11M17 7v13M2 13v7M22 11v9" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg>',t('cellular'))}${sRow('#34c759','<svg viewBox="0 0 24 24"><rect x="3" y="7" width="16" height="10" rx="2.5" fill="none" stroke="#fff" stroke-width="2"/><rect x="5.5" y="9.5" width="8" height="5" rx="1" fill="#fff"/></svg>',t('battery'),'64%')}</div>
  <div class="group" style="margin-bottom:22px">${sRow('#8e8e93','gear',t('general'))}${sRow('#007aff','person',t('access'))}${sRow('#8e8e93','camera',t('camera'))}${sRow('#32ade6','photo',t('wallpaper'))}${sRow('#8e8e93','search',t('search'))}</div>
  <div class="group" style="margin-bottom:22px">${sRow('#ff3b30','bellF',t('notif'))}${sRow('#ff2d55','speaker',t('sound'))}${sRow('#5856d6','<svg viewBox="0 0 24 24"><path d="M15.5 3.5A8.5 8.5 0 1 0 20.5 15 7 7 0 0 1 15.5 3.5Z" fill="#fff"/></svg>',t('focus'))}${sRow('#5856d6','<svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9h-9Z" fill="#fff"/><path d="M14 3.2V10h6.8A9 9 0 0 0 14 3.2Z" fill="#fff" opacity=".7"/></svg>',t('screenTime'),'',"push('screentime')")}</div>
  <div class="group" style="margin-bottom:22px">${sRow('#34c759','<svg viewBox="0 0 24 24"><path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8M16 4h2.5A1.5 1.5 0 0 1 20 5.5V8M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16M9 9.5v1M15 9.5v1M12 9.5v3.5h-1M9.5 16c1.5 1 3.5 1 5 0" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>',t('faceid'))}${sRow('#007aff','<svg viewBox="0 0 24 24"><path d="M7 11V8a5 5 0 0 1 10 0v3" fill="none" stroke="#fff" stroke-width="2"/><rect x="5" y="11" width="14" height="10" rx="2" fill="#fff"/></svg>',t('privacy'))}</div></div>`});
@@ -612,9 +670,9 @@ VIEWS.screentime=()=>{const apps=[['instagram',t('hm',2,41),100],['kakao',t('hm'
 /* ============================================================
    전화 (엔딩)
    ============================================================ */
-function startRing(){ringOnce();clearInterval(ringIv);ringIv=setInterval(()=>{ringOnce();vib([400,250,400])},2600);vib([400,250,400])}
-function stopRing(){clearInterval(ringIv);ringIv=null;clearTimeout(ringTo);try{navigator.vibrate&&navigator.vibrate(0)}catch(e){}}
-function incomingCall(){callName='민희진 대표';callDir='in';callPrev=view;callState='ring';if(nowSong>=0||PLAYER.dataset.voice)PLAYER.pause();APP.querySelectorAll('video').forEach(v=>v.pause());OV.querySelectorAll('.banner').forEach(b=>b.remove());renderCall();startRing();ringTo=setTimeout(missCall,30000)}
+function startRing(){ringUnmute();ringOnce();clearInterval(ringIv);ringIv=setInterval(()=>{ringOnce();vib([400,250,400])},2600);vib([400,250,400])}
+function stopRing(){clearInterval(ringIv);ringIv=null;clearTimeout(ringTo);ringMute();try{navigator.vibrate&&navigator.vibrate(0)}catch(e){}}
+function incomingCall(){if(airplaneMode)return;callName='민희진 대표';callDir='in';callPrev=view;callState='ring';if(nowSong>=0||PLAYER.dataset.voice)PLAYER.pause();APP.querySelectorAll('video').forEach(v=>v.pause());OV.querySelectorAll('.banner').forEach(b=>b.remove());renderCall();startRing();ringTo=setTimeout(missCall,30000)}
 function callTop(){const sh=callName==='민희진 대표';return `<div class="cav">${sh?'<img src="media/eunho_kakao_profile.jpg" alt="">':/^[0-9*-]+$/.test(callName)?`<span style="width:100%;height:100%;display:grid;place-items:center;background:linear-gradient(#a5abb6,#7f858f)">${G.sil.replace('<svg','<svg width="64"')}</span>`:`<span style="width:100%;height:100%;display:grid;place-items:center;background:linear-gradient(#a5abb6,#7f858f);font-size:42px;font-weight:500">${esc(/^[가-힣]{3}$/.test(callName)?callName[1]:[...dn(callName)][0].toUpperCase())}</span>`}</div><div class="cnm">${esc(dn(callName))}</div>`}
 function renderCall(){let c=OV.querySelector('.call');if(!c){c=document.createElement('div');c.className='call';OV.appendChild(c)}c.style.opacity='1';c.style.transform='none';c.style.display='flex';c.animate([{opacity:0,transform:'scale(1.05)'},{opacity:1,transform:'none'}],{duration:380,easing:'cubic-bezier(.2,.9,.25,1)'});setTimeout(()=>{c.getAnimations().forEach(a=>a.cancel());c.style.opacity='1';c.style.transform='none'},420)
  setStatus(true);const locked=['lock','pin'].includes(callPrev);c.classList.toggle('act',callState!=='ring');
@@ -630,7 +688,7 @@ function wireSlider(){const s=$('#slider'),k=s.querySelector('.kn'),lab=s.queryS
 function answerCall(){if(callDir==='in'){curScript=speech;isEnding=true}stopRing();stopRingback();vib(20);callState='active';callStart=Date.now();capIdx=-1;renderCall()}
 function declineCall(){stopRing();callState='';declined++;extraCalls.unshift(['민희진 대표','今天 '+new Date().getHours()+':'+pad(new Date().getMinutes()),'未接']);afterDecline();closeCallUI()}
 function missCall(){if(callState!=='ring')return;stopRing();callState='';declined++;extraCalls.unshift(['민희진 대표','今天 '+new Date().getHours()+':'+pad(new Date().getMinutes()),'未接']);afterDecline();closeCallUI();if(['lock','pin'].includes(view)){lockNotes.unshift({title:t('missedCall'),body:'민희진 대표',app:'phone',time:t('now')});renderLock()}}
-function endCall(){if(callState==='dialing'){clearCallTimers();stopRingback();callState='';extraCalls.unshift([callName,'今天 '+new Date().getHours()+':'+pad(new Date().getMinutes()),'去电']);closeCallUI();if(view==='phone')show('phone');return}
+function endCall(){stopRing();stopRingback();if(callState==='dialing'){clearCallTimers();callState='';extraCalls.unshift([callName,'今天 '+new Date().getHours()+':'+pad(new Date().getMinutes()),'去电']);closeCallUI();if(view==='phone')show('phone');return}
  if(callState!=='active')return;callState='ended';vib(15);const t=$('#ctime');if(t)t.textContent=t_('callEnded');const c=OV.querySelector('.call');c&&c.querySelectorAll('.cb').forEach(b=>b.style.opacity=.4);
  extraCalls.unshift([callName,'今天 '+new Date().getHours()+':'+pad(new Date().getMinutes()),callDir==='out'?'去电':'来电']);if(isEnding)phoneDone=true;isEnding=false;setTimeout(()=>{callState='';closeCallUI();if(view==='phone')show('phone')},1100)}
 /* 대표 전화를 거절/놓쳤을 때: 카톡으로 다시 걸어달라고 하고, 90초 뒤 다시 걸어옴 */
@@ -659,6 +717,7 @@ let lastMin=-1;
 let nextRandomMsgAt=15;
 let lastRandomSender='';
 function triggerRandomMsg(){
+  if(airplaneMode){nextRandomMsgAt=elapsed()+15;return}
   const senders=RANDOM_MSGS.filter(r=>r.who!==lastRandomSender);
   const pick=senders[Math.floor(Math.random()*senders.length)];
   const msg=pick.msgs[Math.floor(Math.random()*pick.msgs.length)];
@@ -670,13 +729,58 @@ function triggerRandomMsg(){
 function tick(){typeof updateCrumb==="function"&&updateCrumb();const now=new Date();$('#sbt').textContent=clock12();const lk=$('#lkt');if(lk)lk.textContent=clock12();
  if(now.getMinutes()!==lastMin){lastMin=now.getMinutes();if(view==='home'&&!HOME.getAnimations().length)renderHome()}
  const e=elapsed();
+ /* 飞行模式：暂停消息与来电推送，避免关闭后集中爆发 */
+ if(airplaneMode){nextRandomMsgAt=Math.max(nextRandomMsgAt,e+10);nextCallAt=Math.max(nextCallAt,e+10)}
+ else{
  /* 随机成员消息事件 - 真正随机触发 */
  if(e>=nextRandomMsgAt&&!callState&&!replyBusy){triggerRandomMsg()}
  /* 代表来电剧情 */
  if(e>=CALL_ASK_AT&&!askedCall&&!callState){askedCall=true;replyStage=liveReplies.length;lineIdx=0;pendingText='';setTimeout(()=>{liveReplies.push({mine:CALL_ASK_REPLY,them:[]});replyStage=liveReplies.length-1;lineIdx=0},CALL_ASK.length*2600+1700);nextCallAt=Math.max(nextCallAt,e+CALL_ASK.length*2.6+25);CALL_ASK.forEach((m,k)=>setTimeout(()=>incomingMsg(m),k*2600))}
  if(askedCall&&e>=Math.max(nextCallAt,CALL_AT)&&!phoneDone&&!callState)incomingCall();
+ }
  if(callState==='active'){const sec=Math.floor((Date.now()-callStart)/1000);const tm=$('#ctime');if(tm)tm.textContent=pad(Math.floor(sec/60))+':'+pad(sec%60);
   const S=curScript||speech;const idx=Math.min(S.length-1,Math.floor(sec/3));if(idx!==capIdx){capIdx=idx;const c=$('#cap');if(c){c.animate([{opacity:.2,transform:'translateY(6px)'},{opacity:1,transform:'none'}],{duration:280});c.innerHTML=`<small>${esc(dn(S[idx][0]))}</small>${esc(S[idx][1])}`}}
   if(sec>S.length*3+2)endCall()}}
 function fit(){const ph=$('#phone');const mob=innerWidth<=540;ph.classList.toggle('mob',mob);ph.classList.toggle('short',mob&&innerHeight<740);if(mob){ph.style.width=innerWidth+'px';ph.style.height=innerHeight+'px';ph.style.transform='';SC=1}else{ph.style.width='393px';ph.style.height='852px';SC=Math.min((innerHeight-40)/852,(innerWidth-40)/393,1.1);ph.style.transform=`scale(${SC})`}}
 addEventListener('resize',fit);fit();renderLock();renderHome();setStatus(true);setInterval(tick,250);tick();
+
+/* ---------- 生日闹钟提醒 ---------- */
+function updateAlarmTime(){const el=$('#alarmTime');if(!el)return;const d=new Date();el.textContent=pad(d.getHours())+':'+pad(d.getMinutes())}
+function updateWakeTime(){const el=$('#wakeTime');if(!el)return;const d=new Date();el.textContent=pad(d.getHours())+':'+pad(d.getMinutes())}
+let alarmTimeIv=null,alarmVibIv=null;
+function showAlarm(skipAudio){
+ const al=$('#alarmL');if(!al)return;
+ al.style.display='block';al.style.opacity='1';
+ al.querySelector('.alarm-bg').style.backgroundImage='url(wallpaper.jpg)';
+ updateAlarmTime();
+ clearInterval(alarmTimeIv);alarmTimeIv=setInterval(updateAlarmTime,1000);
+ if(!skipAudio){const au=$('#alarmAudio');if(au){au.loop=true;try{au.currentTime=0}catch(e){};au.play().catch(()=>{})}}
+ vib([300,100,300,100,300]);
+ if(!alarmVibIv)alarmVibIv=setInterval(()=>{const a=$('#alarmL');if(a&&a.style.display!=='none')vib([300,100,300])},2000);
+}
+function dismissAlarm(){
+ const al=$('#alarmL');const au=$('#alarmAudio');
+ au.pause();au.currentTime=0;
+ clearInterval(alarmVibIv);alarmVibIv=null;
+ try{navigator.vibrate&&navigator.vibrate(0)}catch(e){}
+ al.animate([{opacity:1},{opacity:0}],{duration:400,fill:'forwards'}).onfinish=()=>{al.style.display='none';al.style.opacity=''};
+ sfx('stop');vib(15);
+}
+document.addEventListener('DOMContentLoaded',()=>{
+ const wake=$('#wakeL');
+ if(wake){
+  wake.querySelector('.wake-bg').style.backgroundImage='url(wallpaper.jpg)';
+  updateWakeTime();setInterval(updateWakeTime,1000);
+  wake.addEventListener('pointerdown',()=>{
+   /* 用户手势内立刻启动铃声，让铃声与闹钟画面同时出现 */
+   const au=$('#alarmAudio');
+   if(au){au.loop=true;try{au.currentTime=0}catch(e){};au.play().catch(()=>{})}
+   ac();
+   wake.style.display='none';wake.style.opacity='';
+   showAlarm(true);
+  },{once:true});
+ }
+ const stopBtn=$('#alarmStop');const snoozeBtn=$('#alarmSnooze');
+ if(stopBtn)stopBtn.onclick=dismissAlarm;
+ if(snoozeBtn)snoozeBtn.onclick=dismissAlarm;
+});

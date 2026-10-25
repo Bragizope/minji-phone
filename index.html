@@ -6,12 +6,41 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>MINJI iPhone</title>
 <script>
-/* 媒体加速：jsDelivr Cloudflare 镜像优先，失败自动回退 GitHub Pages（不压缩画质） */
-(function(){var C='https://testingcf.jsdelivr.net/gh/Bragizope/minji-phone@main/';
+/* 媒体加速：jsDelivr Cloudflare 镜像优先，失败自动回退 GitHub Pages（不压缩画质）
+   通过包装 src 赋值 + DOM 挂载改写实现，避免运行时替换 src 导致播放器重载（无声问题） */
+(function(){
+var C='https://testingcf.jsdelivr.net/gh/Bragizope/minji-phone@main/';
 function isRes(v){if(!v||v.indexOf('testingcf.jsdelivr.net')>=0||v.indexOf('data:')===0||v.indexOf('blob:')===0)return false;return /(^|\/)(photos|media)\//.test(v)}
 function toRel(v){var m=v.match(/(photos|media)\/[^?#]+/);return m?m[0]:null}
-function patch(el){if(el&&el.dataset&&el.dataset.cdnFb==='1')return;['src','poster'].forEach(function(a){var v=el.getAttribute(a);if(!isRes(v))return;var rel=toRel(v);if(!rel)return;el.setAttribute(a,C+rel);el.addEventListener('error',function h(){el.removeEventListener('error',h);el.dataset.cdnFb='1';var w=location.pathname.replace(/[^\/]*$/,'');el.setAttribute(a,location.origin+w+rel)},false)})}
+function relFrom(el){return (el.dataset&&el.dataset.cdnRel)||null}
+function setAndWatch(el,a,rel){
+  var w=location.pathname.replace(/[^\/]*$/,'');
+  el.dataset.cdnRel=rel;
+  el.setAttribute(a,C+rel);
+  var h=function(){el.removeEventListener('error',h);el.dataset.cdnFb='1';el.dataset.cdnRel='';el.setAttribute(a,location.origin+w+rel)};
+  el.removeEventListener('error',h);el.addEventListener('error',h,false);
+}
+function patch(el){
+  if(!el||!el.getAttribute||!el.dataset)return;
+  if(el.dataset.cdnFb==='1'||el.dataset.cdnRel)return;
+  ['src','poster'].forEach(function(a){
+    var v=el.getAttribute(a);
+    if(!isRes(v))return;
+    var rel=toRel(v);if(!rel)return;
+    setAndWatch(el,a,rel);
+  });
+}
 function scan(r){if(r&&r.querySelectorAll)r.querySelectorAll('img,video,audio,source').forEach(patch)}
+/* 1) src property 赋值时立即转 CDN（关键：播放器拿到的就是 CDN 地址，绝不重载） */
+['HTMLMediaElement','HTMLImageElement'].forEach(function(T){
+  var proto=window[T]&&window[T].prototype;if(!proto)return;
+  var d=Object.getOwnPropertyDescriptor(proto,'src');if(!d||!d.set)return;
+  Object.defineProperty(proto,'src',{get:d.get,set:function(v){
+    if(typeof v==='string'&&!this.dataset.cdnFb&&isRes(v)){var rel=toRel(v);if(rel){this.dataset.cdnRel=rel;v=C+rel}}
+    return d.set.call(this,v);
+  },configurable:true});
+});
+/* 2) DOM 挂载/属性变化时改写静态与内联渲染的 src/poster */
 scan(document);
 new MutationObserver(function(ms){for(var i=0;i<ms.length;i++){var m=ms[i];if(m.type==='attributes'){patch(m.target);continue}for(var j=0;j<m.addedNodes.length;j++){var n=m.addedNodes[j];if(n.nodeType===1){patch(n);scan(n)}}}}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['src','poster']});
 })();

@@ -15,10 +15,19 @@ function toRel(v){var m=v.match(/(photos|media)\/[^?#]+/);return m?m[0]:null}
 function relFrom(el){return (el.dataset&&el.dataset.cdnRel)||null}
 function setAndWatch(el,a,rel){
   var w=location.pathname.replace(/[^\/]*$/,'');
+  var gh=location.origin+w+rel;
   el.dataset.cdnRel=rel;
   el.setAttribute(a,C+rel);
-  var h=function(){el.removeEventListener('error',h);el.dataset.cdnFb='1';el.dataset.cdnRel='';el.setAttribute(a,location.origin+w+rel)};
+  var h=function(){el.removeEventListener('error',h);el.dataset.cdnFb='1';el.dataset.cdnRel='';el.setAttribute(a,gh)};
   el.removeEventListener('error',h);el.addEventListener('error',h,false);
+  /* 视频：CDN 5 秒未就绪(慢/不可达)自动切回 GitHub，避免一直卡住 */
+  if(el.tagName==='VIDEO'){
+    var to=setTimeout(function(){
+      if(el.dataset.cdnFb==='1')return;
+      if(el.readyState<2){el.dataset.cdnFb='1';el.dataset.cdnRel='';el.setAttribute(a,gh)}
+    },5000);
+    el.addEventListener('playing',function pt(){clearTimeout(to);el.removeEventListener('playing',pt)},false);
+  }
 }
 function patch(el){
   if(!el||!el.getAttribute||!el.dataset)return;

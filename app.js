@@ -558,7 +558,7 @@ VIEWS.reel=()=>({cls:'reel dark',dark:true,html:`<div id="rhost">${reelInner(vid
   pg.addEventListener('pointerup',()=>{if(y0===null)return;y0=null;const w=pg.querySelector('.vwrap');const n=videoIndex+(dy<0?1:-1);
    if(Math.abs(dy)>80&&REELS[n]){w.animate([{transform:w.style.transform},{transform:`translateY(${dy<0?-100:100}%)`}],{duration:250,fill:'forwards'});setTimeout(()=>{videoIndex=n;$('#rhost').innerHTML=reelInner(n);$('#rhost .vwrap').animate([{transform:`translateY(${dy<0?100:-100}%)`},{transform:'none'}],{duration:330,easing:'cubic-bezier(.2,.9,.25,1)'});playReel(pg)},240)}
    else{if(w){w.style.transform='';if(Math.abs(dy)<6){const vd=w.querySelector('video');vd.paused?vd.play():vd.pause()}}}})}});
-function playReel(pg){const v=pg.querySelector('video');if(!v)return;if(nowSong>=0)PLAYER.pause();v.muted=false;const tryPlay=()=>{v.play().catch(()=>{v.muted=true;v.play().catch(()=>{})})};if(v.readyState>=2){tryPlay()}else{v.addEventListener('canplay',tryPlay,{once:true});v.load()}}
+function playReel(pg){const v=pg.querySelector('video');if(!v)return;if(nowSong>=0)PLAYER.pause();v.muted=false;const tryPlay=()=>{v.play().catch(()=>{v.muted=true;v.play().catch(()=>{})})};tryPlay();if(v.readyState<2)v.load()}
 
 /* --- 음악 --- */
 const artStyle=i=>ART[i]?`background-image:url(${ART[i]})`:'';

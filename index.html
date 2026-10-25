@@ -5,6 +5,17 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>MINJI iPhone</title>
+<script>
+/* 媒体加速：jsDelivr Cloudflare 镜像优先，失败自动回退 GitHub Pages（不压缩画质） */
+(function(){var C='https://testingcf.jsdelivr.net/gh/Bragizope/minji-phone@main/';
+function isRes(v){if(!v||v.indexOf('testingcf.jsdelivr.net')>=0||v.indexOf('data:')===0||v.indexOf('blob:')===0)return false;return /(^|\/)(photos|media)\//.test(v)}
+function toRel(v){var m=v.match(/(photos|media)\/[^?#]+/);return m?m[0]:null}
+function patch(el){if(el&&el.dataset&&el.dataset.cdnFb==='1')return;['src','poster'].forEach(function(a){var v=el.getAttribute(a);if(!isRes(v))return;var rel=toRel(v);if(!rel)return;el.setAttribute(a,C+rel);el.addEventListener('error',function h(){el.removeEventListener('error',h);el.dataset.cdnFb='1';var w=location.pathname.replace(/[^\/]*$/,'');el.setAttribute(a,location.origin+w+rel)},false)})}
+function scan(r){if(r&&r.querySelectorAll)r.querySelectorAll('img,video,audio,source').forEach(patch)}
+scan(document);
+new MutationObserver(function(ms){for(var i=0;i<ms.length;i++){var m=ms[i];if(m.type==='attributes'){patch(m.target);continue}for(var j=0;j<m.addedNodes.length;j++){var n=m.addedNodes[j];if(n.nodeType===1){patch(n);scan(n)}}}}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['src','poster']});
+})();
+</script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
 :root{--ease:cubic-bezier(.32,.72,0,1);--blue:#007aff;--red:#ff3b30;--green:#34c759;--sep:rgba(60,60,67,.29);--grey:#8e8e93;--bg2:#f2f2f7;
@@ -20,7 +31,7 @@ svg{display:block}
  box-shadow:0 0 0 10px #121214,0 0 0 12px #3b3b40,0 0 0 13px #18181a,0 40px 90px rgba(0,0,0,.8);isolation:isolate;transform:translateZ(0)}
 #phone.mob{border-radius:0;box-shadow:none;aspect-ratio:auto}
 #screen{position:absolute;inset:0;overflow:hidden}
-#wall{position:absolute;inset:-2px;background:#000 url('wallpaper.jpg?v=4') center/cover;transition:filter .45s,transform .45s}
+#wall{position:absolute;inset:-2px;background-image:url('https://testingcf.jsdelivr.net/gh/Bragizope/minji-phone@main/wallpaper.jpg'),url('wallpaper.jpg?v=4');background-color:#000;background-position:center;background-size:cover;transition:filter .45s,transform .45s}
 #wall.dim{filter:blur(24px) brightness(.62);transform:scale(1.08)}
 .layer{position:absolute;inset:0}
 #homeL,#appL{visibility:hidden}

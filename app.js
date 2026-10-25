@@ -672,7 +672,7 @@ VIEWS.screentime=()=>{const apps=[['instagram',t('hm',2,41),100],['kakao',t('hm'
    ============================================================ */
 function startRing(){ringUnmute();ringOnce();clearInterval(ringIv);ringIv=setInterval(()=>{ringOnce();vib([400,250,400])},2600);vib([400,250,400])}
 function stopRing(){clearInterval(ringIv);ringIv=null;clearTimeout(ringTo);ringMute();try{navigator.vibrate&&navigator.vibrate(0)}catch(e){}}
-function incomingCall(){if(airplaneMode)return;callName='민희진 대표';callDir='in';callPrev=view;callState='ring';if(nowSong>=0||PLAYER.dataset.voice)PLAYER.pause();APP.querySelectorAll('video').forEach(v=>v.pause());OV.querySelectorAll('.banner').forEach(b=>b.remove());renderCall();startRing();ringTo=setTimeout(missCall,30000)}
+function incomingCall(){if(airplaneMode)return;callName='민희진 대표';callDir='in';callPrev=view;callState='ring';pauseSongForCall();APP.querySelectorAll('video').forEach(v=>v.pause());OV.querySelectorAll('.banner').forEach(b=>b.remove());renderCall();startRing();ringTo=setTimeout(missCall,30000)}
 function callTop(){const sh=callName==='민희진 대표';return `<div class="cav">${sh?'<img src="media/eunho_kakao_profile.jpg" alt="">':/^[0-9*-]+$/.test(callName)?`<span style="width:100%;height:100%;display:grid;place-items:center;background:linear-gradient(#a5abb6,#7f858f)">${G.sil.replace('<svg','<svg width="64"')}</span>`:`<span style="width:100%;height:100%;display:grid;place-items:center;background:linear-gradient(#a5abb6,#7f858f);font-size:42px;font-weight:500">${esc(/^[가-힣]{3}$/.test(callName)?callName[1]:[...dn(callName)][0].toUpperCase())}</span>`}</div><div class="cnm">${esc(dn(callName))}</div>`}
 function renderCall(){let c=OV.querySelector('.call');if(!c){c=document.createElement('div');c.className='call';OV.appendChild(c)}c.style.opacity='1';c.style.transform='none';c.style.display='flex';c.animate([{opacity:0,transform:'scale(1.05)'},{opacity:1,transform:'none'}],{duration:380,easing:'cubic-bezier(.2,.9,.25,1)'});setTimeout(()=>{c.getAnimations().forEach(a=>a.cancel());c.style.opacity='1';c.style.transform='none'},420)
  setStatus(true);const locked=['lock','pin'].includes(callPrev);c.classList.toggle('act',callState!=='ring');
@@ -695,10 +695,14 @@ function endCall(){stopRing();stopRingback();if(callState==='dialing'){clearCall
 function afterDecline(){nextCallAt=elapsed()+90;if(declineSent)return;declineSent=true;CALL_DECLINED.forEach((m,k)=>setTimeout(()=>incomingMsg(m),3000+k*2600))}
 /* 플레이어가 거는 전화 */
 let callDir='in',curScript=null,isEnding=false;
+/* 来电/去电打断音乐后，挂断自动恢复 */
+let songForCall=-1;
+function pauseSongForCall(){if(nowSong>=0&&!PLAYER.paused){songForCall=nowSong;PLAYER.pause()}else if(nowSong>=0){songForCall=nowSong}if(PLAYER.dataset.voice)PLAYER.pause()}
+function resumeSongForCall(){if(songForCall<0)return;songForCall=-1;if(PLAYER.dataset.voice)return;PLAYER.play().catch(()=>{});setTimeout(()=>{refreshNP();updateIsland()},80)}
 function clearCallTimers(){callTimers.forEach(clearTimeout);callTimers=[]}
 function startRingback(){const r=()=>{tone(440,0,1,.05);tone(480,0,1,.05)};r();clearInterval(rbIv);rbIv=setInterval(r,3000)}
 function stopRingback(){clearInterval(rbIv);rbIv=null}
-function dial(name){if(callState)return;callName=name;callDir='out';callPrev=view;callState='dialing';if(nowSong>=0||PLAYER.dataset.voice)PLAYER.pause();renderCall();startRingback();vib(10);
+function dial(name){if(callState)return;callName=name;callDir='out';callPrev=view;callState='dialing';pauseSongForCall();renderCall();startRingback();vib(10);
  const ready=askedCall||elapsed()>=CALL_ASK_AT;const pick=(sc,ms,end)=>{callTimers.push(setTimeout(()=>{if(callState!=='dialing')return;curScript=sc;isEnding=!!end;answerCall()},ms))};
  if(name==='민희진 대표'&&!phoneDone&&ready)pick(speech,4200,true);
  else if(name==='민희진 대표'&&phoneDone)pick(EUNHO_AFTER,6000);
@@ -707,7 +711,7 @@ function dial(name){if(callState)return;callName=name;callDir='out';callPrev=vie
  else{callTimers.push(setTimeout(()=>{if(callState==='dialing')rejectOut(t('noAnswer'))},9000))}}
 function rejectOut(msg){stopRingback();clearCallTimers();const t=$('#ctime');if(t)t.textContent=msg;tone(480,0,.25,.05);tone(480,.35,.25,.05);tone(480,.7,.25,.05);extraCalls.unshift([callName,'今天 '+new Date().getHours()+':'+pad(new Date().getMinutes()),'去电']);callState='ended';
  const c=OV.querySelector('.call');c&&c.querySelectorAll('.cb').forEach(b=>b.style.opacity=.4);setTimeout(()=>{callState='';closeCallUI();if(view==='phone')show('phone')},1300)}
-function closeCallUI(){const c=OV.querySelector('.call');if(!c)return;c.animate([{opacity:1},{opacity:0,transform:'scale(1.04)'}],{duration:320,fill:'forwards'});setTimeout(()=>{c.remove();setStatus(viewDark());updateIsland();if(view==='home')renderHome()},350)}
+function closeCallUI(){resumeSongForCall();const c=OV.querySelector('.call');if(!c)return;c.animate([{opacity:1},{opacity:0,transform:'scale(1.04)'}],{duration:320,fill:'forwards'});setTimeout(()=>{c.remove();setStatus(viewDark());updateIsland();if(view==='home')renderHome()},350)}
 
 /* ============================================================
    루프 / 시작

@@ -10,7 +10,7 @@ const elapsed=()=>(Date.now()-base)/1000+timeOffset;
 
 /* ---------- 상태 ---------- */
 let view='lock',curDark=true,SC=1,lastRect=null,animTok=0,firstOpen=true,pendingOpen=null;
-let pincode='',noteId=0,selectedDay=7,calMonth=5,chatId='민희진 대표',videoIndex=0,mailId=0,missOnly=false,safSearch=false;
+let pincode='',noteId=0,selectedDay=7,calMonth=5,chatId='민희진 대표',videoIndex=0,mailId=0,missOnly=false,safSearch=false,preloadedReel=-1;
 let unread={'민희진 대표':2,HANNI:1,DANIELLE:1,HAERIN:1,HYEIN:1,엄마:1,아빠:1,오빠:1,수진:1,성수빈:1,김대리:1,댄스팀:1,'맛집 탐험단':1,'독서 클럽':1};
 let eunhoUnread=0,todayChat=[],incoming=0,replyStage=0,lineIdx=0,typing=false,pendingText='',replyBusy=false;
 let alarmStates=Array(6).fill(true),readMail=new Set(),nowSong=-1,flashOn=false;
@@ -543,13 +543,14 @@ function viewerGestures(v){const img=v.querySelector('.vi'),bg=v.querySelector('
 
 /* --- Instagram --- */
 const REELS=[{t:'hyein起床啦⏰',d:fmtYMD(2024,5,27),v:'12,450',n:892},{t:'看看这是谁',d:fmtYMD(2024,3,12),v:'28,300',n:2104},{t:'nonono！！',d:fmtYMD(2023,6,7),v:'8,720',n:546}];
-VIEWS.instagram=()=>({cls:'ig',html:`<div class="ig-h"><button onclick="closeApp()" style="width:26px">${G.chevLb}</button><b>minji_jiji</b>${G.bell}${G.dotsH}</div><div class="scroll">
+VIEWS.instagram=()=>({cls:'ig',init:()=>{preloadReel(0)},html:`<div class="ig-h"><button onclick="closeApp()" style="width:26px">${G.chevLb}</button><b>minji_jiji</b>${G.bell}${G.dotsH}</div><div class="scroll">
  <div class="igp"><div class="pp"><img src="media/minji_instagram_avatar.jpg" alt=""></div><div class="st"><span><b>3</b>${t('posts')}</span><span><b>1,284</b>${t('followers')}</span><span><b>312</b>${t('following')}</span></div></div>
  <div class="igbio"><b>NewJeans MINJI</b><br>${t('bio')}</div>
  <div class="igbtn"><button>${t('followingBtn')}</button><button>${t('message')}</button><button class="sq">${G.person.replace('<svg','<svg width="18" height="18"')}</button></div>
  <div class="igtabs"><span class="on">${G.grid}</span><span>${G.reels}</span><span>${G.tag}</span></div>
  <div class="iggrid">${['reel_thumb_01.jpg','reel_thumb_02.jpg','reel_thumb_03.jpg'].map((x,i)=>`<button onclick="videoIndex=${i};push('reel')"><img src="photos/${x}" alt=""><svg class="rc" viewBox="0 0 24 24"><path d="M3.5 7.5A4 4 0 0 1 7.5 3.5h9a4 4 0 0 1 4 4v9a4 4 0 0 1-4 4h-9a4 4 0 0 1-4-4Zm6.5 3v7l6-3.5Z"/></svg><span class="vc">${G.playF.replace('<svg','<svg fill="none" stroke="#fff"')}${REELS[i].v}</span></button>`).join('')}</div></div>
  ${tabbar([['home',''],['search',''],['plusSq',''],['reels',''],['<span style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#bbb,#888);display:block"></span>','']],-1)}`});
+function preloadReel(i){try{if(preloadedReel>=0)return;preloadedReel=i;const v=document.createElement('video');v.muted=true;v.playsInline=true;v.preload='auto';v.src='media/minji_instagram_0'+(i+1)+'.mp4';v.style.display='none';document.body.appendChild(v)}catch(e){}}
 function reelInner(i){const r=REELS[i];return `<div class="vwrap"><video src="media/minji_instagram_0${i+1}.mp4" loop playsinline preload="metadata" poster="photos/reel_thumb_0${i+1}.jpg"></video>
  <button class="mute-hint" onclick="unmuteReel(event)">🔇 点击开启声音</button>
  <div class="ract"><div class="liked">${G.heart}<span>${r.n+1}</span></div><div>${G.comment}<span>${12+i*7}</span></div><div>${G.send}<span>${3+i}</span></div><div>${G.dotsH}</div></div>
